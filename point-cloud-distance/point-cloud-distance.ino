@@ -24,18 +24,28 @@
 
 #include <Servo.h>
 
-
-Servo servoV;
 Servo servoH;
 int scanH = 0;
-int scanV = 0;
+int actual = 0;
+int motion[4] = {0, 45, 90, 135};
+int index = 0;
 void setup()
 {
+  Serial.begin(9600);
   servoH.attach(5);
-  servoV.attach(6);
 }
 void loop()
 {
-  servoH.write(90);
-  servoV.write(90);
+  if (Serial.available() > 0) {
+    scanH = Serial.parseInt();
+    actual = map(scanH, 0, 169, 0, 180);
+    Serial.println("Recieved Data");
+
+  } else {
+    actual = map(motion[index], 0, 165, 0, 180);;
+    index = (index + 1) % 4;
+  }
+  servoH.write(actual);
+  Serial.println(actual);
+  delay(5000);
 }
