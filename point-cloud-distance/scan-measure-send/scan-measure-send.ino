@@ -16,7 +16,7 @@ void setup()
 }
 void loop()
 {
-  if(scanV > 135) {
+  if(scanV > 105) {
     return;
   }
   servoV.write(map(scanV, 0, 165, 0, 180));
