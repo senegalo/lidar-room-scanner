@@ -6,9 +6,7 @@ def to_rad(deg)
 end
 
 IO.foreach(ARGV[0]) do |l|
-  phy, a1, d = l.split(',').map(&:to_f)
-
-  next if d > 75
+  phy, a1, d, sig_strength = l.split(',').map(&:to_f)
 
   phy = to_rad(phy)
   a1 = to_rad(a1)
