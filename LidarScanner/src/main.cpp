@@ -1,10 +1,14 @@
 #include <Arduino.h>
-#include "Servo.h"
+#include "Adafruit_PWMServoDriver.h"
 #include "TFMiniPlus.h"
+#include "Wire.h"
 
 TFMiniPlus mini;
-Servo servoV;
-Servo servoH;
+
+Adafruit_PWMServoDriver driver = Adafruit_PWMServoDriver();
+int servoHigh = 434;
+int servoLow = 70;
+
 uint8_t scanH;
 uint8_t scanV;
 uint8_t minScanV;
@@ -14,21 +18,33 @@ uint8_t maxScanH;
 uint8_t scanDelay;
 uint16_t range;
 uint16_t strength;
+uint8_t inc = 1;
 bool start = false;
 
+// stepper
+bool direction = true;
+uint8_t stepper_clock = 3;
+uint8_t stepper_dir = 2;
+
 void setup() {
+  // serial config
   Serial.begin(115200);
   Serial3.begin(115200);
 
-  servoH.attach(5);
-  servoV.attach(6);
-  servoV.write(scanV);
-  servoH.write(scanH);
+  // PWM generator for the servos
+  Adafruit_PWMServoDriver driver = Adafruit_PWMServoDriver();
+  driver.begin();
+  driver.setPWMFreq(50);
+  Wire.setClock(400000);
 
   mini.begin(&Serial3);
   if (mini.setFrameRate(0) && mini.setMeasurementTo(TFMINI_MEASUREMENT_MM)) {
     Serial.println("System Ready");
   }
+
+  pinMode(stepper_clock, OUTPUT);
+  pinMode(stepper_dir, OUTPUT);
+  digitalWrite(stepper_dir, HIGH);
 }
 void loop() {
   if (Serial.available()) {
@@ -60,8 +76,10 @@ void loop() {
     return;
   }
 
-  servoV.write(map(scanV, 0, 165, 0, 180));
-  servoH.write(map(scanH, 0, 165, 0, 180));
+  driver.setPWM(0, 0, map(scanV, 0, 180, servoLow, servoHigh));
+  digitalWrite(stepper_clock, HIGH);
+  delayMicroseconds(100);
+  digitalWrite(stepper_clock, LOW);
 
   mini.triggerDetection();
 
@@ -77,11 +95,11 @@ void loop() {
     Serial.write(uint8_t(range));
     Serial.write(uint8_t(strength >> 8));
     Serial.write(uint8_t(strength));
-    scanH = (scanH + 1);
-    if (scanH > maxScanH) {
-      scanH = minScanH;
-    }
-    if (scanH == minScanH) {
+    scanH += inc;
+
+    if (scanH >= maxScanH || scanH <= minScanH) {
+      inc *= -1;
+      digitalWrite(stepper_dir, !digitalRead(stepper_dir));
       scanV = scanV + 1;
     }
   }

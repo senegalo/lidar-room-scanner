@@ -8,8 +8,8 @@ STDOUT.sync = true
 @ser_write.syswrite(255.chr) # frame start
 @ser_write.syswrite(60.chr) # minScanH
 @ser_write.syswrite(120.chr) # maxScanH
-@ser_write.syswrite(105.chr) # minScanV
-@ser_write.syswrite(115.chr) # maxScanV
+@ser_write.syswrite(70.chr) # minScanV
+@ser_write.syswrite(120.chr) # maxScanV
 @ser_write.syswrite(100.chr) # frame delay
 
 while true
